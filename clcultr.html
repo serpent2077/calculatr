@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Responsive Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<style>
+  :root {
+    --bg-start: #0f2027; --bg-end: #4b0082;
+    --text: #e0e0e0; --highlight: #8ab4f8;
+    --btn-bg: rgba(255 255 255 / 0.1);
+    --btn-op-bg: #5c2a9d; --btn-op-hover: #7933c5;
+    --clear-bg: #b93a3a; --clear-hover: #d73a49; --clear-active: #f66a0a;
+    --equals-bg: #2a7a8c; --equals-hover: #3792a9; --equals-active: #56b4d3;
+    --font:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body {
+    margin:0; min-height:100vh; display:flex; justify-content:center; align-items:center;
+    background:linear-gradient(135deg,var(--bg-start),var(--bg-end));
+    font-family: var(--font); color: var(--text); padding:32px 16px;
+    user-select:none;
+  }
+  .calculator {
+    background: rgba(0,0,0,0.3); border-radius:16px; width:320px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.7), inset 0 0 30px rgba(255 255 255 / 0.05);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  @media(min-width:768px){.calculator{width:400px;}}
+  @media(min-width:1024px){.calculator{width:480px;}}
+  .display {
+    background: rgba(255 255 255 / 0.1); padding:24px 32px; font-size:2.5rem;
+    font-weight:700; text-align:right; border-bottom:1px solid rgba(255 255 255 / 0.25);
+    min-height:72px; display:flex; align-items:center; justify-content:flex-end;
+    font-variant-numeric: tabular-nums; word-wrap: break-word; user-select:text;
+  }
+  .buttons {
+    display:grid; grid-template-columns: repeat(4,1fr); gap:16px; padding:24px 32px;
+  }
+  button {
+    background: var(--btn-bg); border:none; border-radius:12px;
+    color: var(--text); font-size:1.4rem; font-weight:600;
+    padding:16px 0; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.3);
+    display:flex; justify-content:center; align-items:center; transition:0.25s;
+    user-select:none; outline-offset:2px;
+  }
+  button:focus-visible {outline:3px solid var(--highlight);}
+  button:hover {background: rgba(255 255 255 / 0.2);}
+  button:active {background: rgba(255 255 255 / 0.3); transform: scale(0.95); box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+  button.operator {
+    background: var(--btn-op-bg); color:#fff; font-weight:700; font-size:1.5rem;
+  }
+  button.operator:hover {background: var(--btn-op-hover);}
+  button.operator:active {background: #8e43d9;}
+  button.clear {
+    background: var(--clear-bg); font-weight:700; grid-column: auto;
+  }
+  button.clear:hover {background: var(--clear-hover);}
+  button.clear:active {background: var(--clear-active);}
+  button.equals {
+    background: var(--equals-bg); font-weight:700; font-size:1.4rem; grid-column: auto;
+  }
+  button.equals:hover {background: var(--equals-hover);}
+  button.equals:active {background: var(--equals-active);}
+  button.erase {
+    background:#674ea7; color:#fff; font-weight:700;
+  }
+  button.erase:hover {background:#7b54c0;}
+  button.erase:active {background:#8e5ddd;}
+  button.number {
+    font-weight:600;
+  }
+  button.zero {
+    grid-column: span 2;
+  }
+</style>
+</head>
+<body>
+  <div class="calculator" role="application" aria-label="Calculator">
+    <div class="display" id="display" aria-live="polite" aria-atomic="true">0</div>
+    <div class="buttons" role="group" aria-label="Calculator buttons">
+      <button type="button" class="clear" id="clear" aria-label="Clear all input">C</button>
+      <button type="button" class="erase" id="erase" aria-label="Erase last character">⌫</button>
+      <button type="button" class="operator" data-op="+" aria-label="Add">+</button>
+      <button type="button" class="operator" data-op="-" aria-label="Subtract">−</button>
+      <button type="button" class="operator" data-op="×" aria-label="Multiply">×</button>
+      <button type="button" class="operator" data-op="÷" aria-label="Divide">÷</button>
+
+      <button type="button" class="number" data-num="1" aria-label="1">1</button>
+      <button type="button" class="number" data-num="2" aria-label="2">2</button>
+      <button type="button" class="number" data-num="3" aria-label="3">3</button>
+      <button type="button" class="number" data-num="4" aria-label="4">4</button>
+
+      <button type="button" class="number" data-num="5" aria-label="5">5</button>
+      <button type="button" class="number" data-num="6" aria-label="6">6</button>
+      <button type="button" class="number" data-num="7" aria-label="7">7</button>
+      <button type="button" class="number" data-num="8" aria-label="8">8</button>
+
+      <button type="button" class="number" data-num="9" aria-label="9">9</button>
+      <button type="button" class="number zero" data-num="0" aria-label="0">0</button>
+      <button type="button" class="number" data-num="." aria-label="Decimal point">.</button>
+      <button type="button" class="equals" id="equals" aria-label="Equals">=</button>
+    </div>
+  </div>
+<script>
+(() => {
+  const disp = document.getElementById('display');
+  let curr = '0', prev = null, op = null, resultFlag = false;
+
+  function update() {
+    disp.textContent = curr.length > 15 ? curr.slice(0,15) + '…' : curr;
+  }
+  function clearAll() {
+    curr='0'; prev=null; op=null; resultFlag=false; update();
+  }
+  function erase() {
+    if(resultFlag) { clearAll(); return; }
+    curr = curr.length>1 ? curr.slice(0,-1) : '0';
+    update();
+  }
+  function appendNum(n) {
+    if(resultFlag) { curr = n==='.'?'0.':n; resultFlag=false; update(); return; }
+    if(n === '.' && curr.includes('.')) return;
+    curr = (curr==='0' && n!=='.')? n: curr+n;
+    update();
+  }
+  function chooseOp(o){
+    if(op && prev !== null) compute();
+    prev = curr;
+    op = o; curr = '0'; resultFlag=false; update();
+  }
+  function compute(){
+    if(op===null || prev===null) return;
+    const a=parseFloat(prev), b=parseFloat(curr);
+    if(isNaN(a)||isNaN(b)) return;
+    let res;
+    switch(op){
+      case '+': res = a+b; break;
+      case '-': res = a-b; break;
+      case '×': res = a*b; break;
+      case '÷':
+        if(b===0){ alert("Error: Division by zero"); clearAll(); return;}
+        res = a/b; break;
+      default: return;
+    }
+    curr = String(Math.round(res*1e12)/1e12);
+    op = prev = null;
+    resultFlag = true;
+    update();
+  }
+
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(btn.classList.contains('number')) appendNum(btn.dataset.num);
+      else if(btn.classList.contains('operator')) chooseOp(btn.dataset.op);
+      else if(btn.id === 'clear') clearAll();
+      else if(btn.id === 'erase') erase();
+      else if(btn.id === 'equals') compute();
+    });
+  });
+
+  window.addEventListener('keydown', e => {
+    if(e.key >= '0' && e.key <= '9') { e.preventDefault(); appendNum(e.key);}
+    else if(e.key === '.') { e.preventDefault(); appendNum('.');}
+    else if(['+','-','*','/'].includes(e.key)) {
+      e.preventDefault();
+      const map = {'+':'+', '-':'-', '*':'×', '/':'÷'};
+      chooseOp(map[e.key]);
+    }
+    else if(e.key==='Enter'||e.key==='='){ e.preventDefault(); compute();}
+    else if(e.key==='Backspace'){ e.preventDefault(); erase();}
+    else if(e.key.toLowerCase()==='c'){ e.preventDefault(); clearAll();}
+  });
+
+  clearAll();
+})();
+</script>
+</body>
+</html>
+
+
+
